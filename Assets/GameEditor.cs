@@ -14,5 +14,20 @@ public class GameEditor : Editor
         {
             myScript.SetNewConfiguration();
         }
+
+        //if (GUILayout.Button("Start Simulation"))
+        //{
+        //    myScript.StartSimulation();
+        //}
+
+        //if (GUILayout.Button("Pause Simulation"))
+        //{
+        //    myScript.PauseSimulation();
+        //}
+
+        //if (GUILayout.Button("Reset Simulation"))
+        //{
+        //    myScript.ResetSimulation();
+        //}
     }
 }
