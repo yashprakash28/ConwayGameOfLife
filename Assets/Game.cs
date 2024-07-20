@@ -6,10 +6,21 @@ public class Game : MonoBehaviour
 {
     [SerializeField] private GameObject _pixelPrefab;
     [SerializeField] private Camera _mainCamera;
+    [SerializeField] private Material _pixelBlack;
+    [SerializeField] private Material _pixelWhite;
     float windowHeight;
     float windowWidth;
     float pixelSizeOffset;
     float screenOffset;
+
+    [System.Serializable]
+    public struct Pixel
+    {
+        public GameObject objectReference;
+        public Color colorVal;
+    }
+
+    public List<List<Pixel>> pixelMatrix = new List<List<Pixel>>(); 
     
     void Start()
     {
@@ -34,14 +45,28 @@ public class Game : MonoBehaviour
 
         for (int i = 0; i < maxRows; i++)
         {
+            List<Pixel> row = new List<Pixel>();
             for (int j = 0; j < maxColumns; j++)
             {
                 Vector3 targetPosition = new Vector3(bottomLeft.x + pixelSizeOffset + (j*pixelSize), bottomLeft.y + pixelSizeOffset + (i * pixelSize), bottomLeft.z);
-                Debug.Log(targetPosition);
                 GameObject objectPixel = Instantiate(_pixelPrefab, targetPosition, Quaternion.identity);
                 objectPixel.transform.SetParent(this.gameObject.transform);
+                objectPixel.GetComponent<Renderer>().material = _pixelBlack;
+
+                row.Add(new Pixel
+                {
+                    objectReference = objectPixel,
+                    colorVal = objectPixel.GetComponent<Renderer>().material.color
+                }) ;
+
             }
+            pixelMatrix.Add(row);
         }
+
+        int midx = maxRows / 2;
+        int midy = maxColumns / 2;
+
+        pixelMatrix[midx][midy].objectReference.GetComponent<Renderer>().material = _pixelWhite;
     }
 
 
