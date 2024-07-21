@@ -33,6 +33,9 @@ public class Game : MonoBehaviour
 
     List<int> directionOffset = new List<int>();
 
+    public float delay = 2.0f; // Delay time in seconds
+    private float timer = 0.0f;
+
     void Start()
     {
         isRunSimulation = false;
@@ -43,13 +46,16 @@ public class Game : MonoBehaviour
         ResetSimulation();
     }
 
-    //void Update()
-    //{
-    //    if (isRunSimulation)
-    //    {
-    //        RunSimulation();
-    //    }
-    //}
+    void Update()
+    {
+        timer += Time.deltaTime;
+
+        if (timer >= delay && isRunSimulation)
+        {
+            RunSimulation();
+            timer = 0.0f;
+        }
+    }
 
     private void InitSettings()
     {
@@ -211,17 +217,15 @@ public class Game : MonoBehaviour
         Debug.Log(finalstr);
     }
 
+    public void StartSimulation()
+    {
+        isRunSimulation = true;
+    }
 
-
-    //public void StartSimulation()
-    //{
-    //    isRunSimulation = true;
-    //}
-
-    //public void PauseSimulation()
-    //{
-    //    isRunSimulation = false;
-    //}
+    public void PauseSimulation()
+    {
+        isRunSimulation = false;
+    }
 
     public void RunSimulation()
     {
@@ -312,12 +316,6 @@ public class Game : MonoBehaviour
         }
 
         return count;
-    }
-
-    bool isWithinBounds(int x, int y)
-    {
-        if (x >= 0 && y >= 0 && x < maxRows && y < maxColumns) return true;
-        return false;
     }
 
     //private void ValidateSimulationLogic()
