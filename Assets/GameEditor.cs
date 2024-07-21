@@ -33,10 +33,10 @@ public class GameEditor : Editor
             myScript.CountLiveNeighbors(middleRow + 1, middleCol + 1);
         }
 
-        //if (GUILayout.Button("[Test]Print Pixel Matrix"))
-        //{
-        //    myScript.PrintPixelMatrix();
-        //}
+        if (GUILayout.Button("[Test]Run Simulation"))
+        {
+            myScript.RunSimulation();
+        }
 
         //if (GUILayout.Button("Start Simulation"))
         //{

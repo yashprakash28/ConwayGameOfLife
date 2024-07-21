@@ -24,6 +24,7 @@ public class Game : MonoBehaviour
     Vector3 topLeft;
 
     public List<GameObject> pixelMatrix = new List<GameObject>();
+    public List<Material> newPixelMatrix = new List<Material>();
 
     public int[,] gridConfigurations; // 2D array to store configurations
     int totalConfigurations = 0;
@@ -108,7 +109,6 @@ public class Game : MonoBehaviour
 
                 pixelMatrix.Add(objectPixel);
                 pixelCount++;
-                Debug.Log("(" + i + ", " + j + ") : " + pixelCount);
             }
         }
 
@@ -182,6 +182,9 @@ public class Game : MonoBehaviour
             targetConfiguration.Add(tmp);
         }
 
+        // can be used to compare output with the one on wikipedia page of Conway's game of life
+        //ValidateSimulationLogic();
+
         string finalstr = randomIndex + " : ";
         int dirIndex = 0;
         for (int i = 0; i < 3; i++)
@@ -220,36 +223,78 @@ public class Game : MonoBehaviour
     //    isRunSimulation = false;
     //}
 
-    //public void RunSimulation()
-    //{
-    //    /*
-    //     * Any live cell with fewer than two live neighbours dies, as if by underpopulation.
-    //     * Any live cell with two or three live neighbours lives on to the next generation.
-    //     * Any live cell with more than three live neighbours dies, as if by overpopulation.
-    //     * Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
-    //     */
+    public void RunSimulation()
+    {
+        /*
+         * Any live cell with fewer than two live neighbours dies, as if by underpopulation.
+         * Any live cell with two or three live neighbours lives on to the next generation.
+         * Any live cell with more than three live neighbours dies, as if by overpopulation.
+         * Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
+         */
 
-    //    for (int i = 0; i < maxRows; i++)
-    //    {
-    //        for (int j = 0; j < maxColumns; j++)
-    //        {
-    //            int liveNeighborCount = CountLiveNeighbors(i, j);
-    //            if (liveNeighborCount != 0)
-    //            {
-    //                Debug.Log(i + ", " + j + " : " + liveNeighborCount);
-    //            }
+        newPixelMatrix.Clear();
 
-    //        }
-    //    }
-    //}
+        int liveCellCnt = 0;
+        int deadCellCnt = 0;
+
+        // iterate to calculate next generation
+        for (int i = 0; i < maxRows; i++)
+        {
+            for (int j = 0; j < maxColumns; j++)
+            {
+                int liveNeighborCount = CountLiveNeighbors(i, j);
+                int idx = i * maxColumns + j;
+
+                if (pixelMatrix[idx].GetComponent<Renderer>().material.name == _pixelWhite.name + " (Instance)")
+                {
+                    liveCellCnt++;
+                    // live cell - 3 conditions
+                    if (liveNeighborCount < 2 || liveNeighborCount > 3)
+                    {
+                        // underpopulation and overpopulation
+                        newPixelMatrix.Add(_pixelBlack);
+                    }
+                    else if (liveNeighborCount == 2 || liveNeighborCount == 3)
+                    {
+                        // next generation
+                        newPixelMatrix.Add(_pixelWhite);
+                    }
+                }
+                else
+                {
+                    deadCellCnt++;
+                    // dead cell
+                    if (liveNeighborCount == 3)
+                    {
+                        // reproduction
+                        newPixelMatrix.Add(_pixelWhite);
+                    }
+                    else
+                    {
+                        newPixelMatrix.Add(_pixelBlack);
+                    }
+                }
+            }
+        }
+
+        Debug.Log(liveCellCnt + ", " + deadCellCnt);
+
+        // iterate to swap next generation
+        for(int i=0; i<maxRows; i++)
+        {
+            for(int j=0; j<maxColumns; j++)
+            {
+                int idx = i * maxColumns + j;
+                pixelMatrix[idx].GetComponent<Renderer>().material = newPixelMatrix[idx];
+            }
+        }
+    }
 
     public int CountLiveNeighbors(int x, int y)
     {
         int count = 0;
-        
         int idx = x * maxColumns + y;
         
-
         for (int i=0; i<9; i++)
         {
             int targetIndex = idx + directionOffset[i];
@@ -260,14 +305,11 @@ public class Game : MonoBehaviour
                     Renderer renderer = pixelMatrix[targetIndex].GetComponent<Renderer>();
                     if (renderer.material.name == _pixelWhite.name + " (Instance)")
                     {
-                        //Debug.Log("material white for TI : " + targetIndex);
                         count++;
                     }
                 }
             }
         }
-
-        Debug.Log(x + ", " + y + " ; " + idx + " ; " + count);
 
         return count;
     }
@@ -277,5 +319,41 @@ public class Game : MonoBehaviour
         if (x >= 0 && y >= 0 && x < maxRows && y < maxColumns) return true;
         return false;
     }
+
+    //private void ValidateSimulationLogic()
+    //{
+    //    // Add first configuration
+    //    List<int> tmp = new List<int> { 0, 1, 0 };
+    //    targetConfiguration.Add(tmp);
+    //    Debug.Log(targetConfiguration[0][0]);
+    //    Debug.Log(targetConfiguration[0][1]);
+    //    Debug.Log(targetConfiguration[0][2]);
+
+    //    // Add second configuration
+    //    tmp = new List<int> { 1, 1, 0 };
+    //    targetConfiguration.Add(tmp);
+    //    Debug.Log(targetConfiguration[1][0]);
+    //    Debug.Log(targetConfiguration[1][1]);
+    //    Debug.Log(targetConfiguration[1][2]);
+
+    //    // Add third configuration
+    //    tmp = new List<int> { 0, 1, 1 };
+    //    targetConfiguration.Add(tmp);
+    //    Debug.Log(targetConfiguration[2][0]);
+    //    Debug.Log(targetConfiguration[2][1]);
+    //    Debug.Log(targetConfiguration[2][2]);
+
+    //    // Format and log the entire configuration
+    //    string fstr = "";
+    //    for (int i = 0; i < targetConfiguration.Count; i++)
+    //    {
+    //        string rstr = "";
+    //        for (int j = 0; j < targetConfiguration[i].Count; j++)
+    //        {
+    //            rstr += targetConfiguration[i][j] + " ";
+    //        }
+    //        fstr += rstr.TrimEnd() + " ";
+    //    }
+    //}
 
 }
