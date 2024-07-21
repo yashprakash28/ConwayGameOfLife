@@ -12,8 +12,18 @@ public class GameEditor : Editor
 
         if (GUILayout.Button("New Initial Configuration"))
         {
-            myScript.SetNewConfiguration();
+            myScript.SetNewInitialConfiguration();
         }
+
+        //if (GUILayout.Button("[Test]Count Live Neighbor"))
+        //{
+        //    myScript.CountLiveNeighbors(Random.Range(0, 500), Random.Range(0, 500));
+        //}
+
+        //if (GUILayout.Button("[Test]Print Pixel Matrix"))
+        //{
+        //    myScript.PrintPixelMatrix();
+        //}
 
         //if (GUILayout.Button("Start Simulation"))
         //{
@@ -25,9 +35,9 @@ public class GameEditor : Editor
         //    myScript.PauseSimulation();
         //}
 
-        //if (GUILayout.Button("Reset Simulation"))
-        //{
-        //    myScript.ResetSimulation();
-        //}
+        if (GUILayout.Button("Reset Simulation"))
+        {
+            myScript.ResetSimulation();
+        }
     }
 }

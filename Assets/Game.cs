@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -20,17 +21,9 @@ public class Game : MonoBehaviour
     float gridHeight;
     int midx;
     int midy;
-    Vector3 bottomLeft;
+    Vector3 topLeft;
 
-
-    [System.Serializable]
-    public struct Pixel
-    {
-        public GameObject objectReference;
-        public Color colorVal;
-    }
-
-    public List<List<Pixel>> pixelMatrix = new List<List<Pixel>>();
+    public List<GameObject> pixelMatrix = new List<GameObject>();
 
     public int[,] gridConfigurations; // 2D array to store configurations
     int totalConfigurations = 0;
@@ -44,7 +37,7 @@ public class Game : MonoBehaviour
         InitSettings();
         InitScreen();
         ComputeAllInitialGridConfigurations();
-        ResetSimulation();
+        //ResetSimulation();
     }
 
     //void Update()
@@ -70,6 +63,7 @@ public class Game : MonoBehaviour
         maxColumns = Mathf.FloorToInt(windowWidth / pixelSize);
         maxRows = Mathf.FloorToInt(windowHeight / pixelSize);
         configurationDebugStr += "RxC (" + maxRows + " x " + maxColumns + ") ; ";
+        configurationDebugStr += "TotalPixels (" + maxColumns * maxRows + ")";
 
         gridWidth = maxColumns * pixelSize;
         gridHeight = maxRows * pixelSize;
@@ -80,30 +74,30 @@ public class Game : MonoBehaviour
     private void InitScreen()
     {
         gameObject.transform.localScale = new Vector3(gridWidth, gridHeight, 0.1f);
-        bottomLeft = new Vector3(-gridWidth / 2, -gridHeight / 2, gameObject.transform.position.z - 0.5f);
+        topLeft = new Vector3(-gridWidth / 2, gridHeight / 2, gameObject.transform.position.z - 0.5f);
         InstantiatePixels();
     }
 
     private void InstantiatePixels()
     {
+        int pixelCount = 0;
         for (int i = 0; i < maxRows; i++)
         {
-            List<Pixel> row = new List<Pixel>();
             for (int j = 0; j < maxColumns; j++)
             {
-                Vector3 targetPosition = new Vector3(bottomLeft.x + pixelSizeOffset + (j * pixelSize), bottomLeft.y + pixelSizeOffset + (i * pixelSize), bottomLeft.z);
+                Vector3 targetPosition = new Vector3(
+                                                topLeft.x + pixelSizeOffset + (j * pixelSize), 
+                                                topLeft.y - pixelSizeOffset - (i * pixelSize), 
+                                                topLeft.z
+                                            );
                 GameObject objectPixel = Instantiate(_pixelPrefab, targetPosition, Quaternion.identity);
                 objectPixel.transform.SetParent(this.gameObject.transform);
                 objectPixel.GetComponent<Renderer>().material = _pixelBlack;
 
-                row.Add(new Pixel
-                {
-                    objectReference = objectPixel,
-                    colorVal = objectPixel.GetComponent<Renderer>().material.color
-                });
-
+                pixelMatrix.Add(objectPixel);
+                pixelCount++;
+                Debug.Log("(" + i + ", " + j + ") : " + pixelCount);
             }
-            pixelMatrix.Add(row);
         }
 
         midx = maxRows / 2;
@@ -148,8 +142,24 @@ public class Game : MonoBehaviour
         return configurations;
     }
 
-    public void SetNewConfiguration()
+    public void ResetSimulation()
     {
+        for (int i = 0; i < maxRows; i++)
+        {
+            for (int j = 0; j < maxColumns; j++)
+            {
+                //pixelMatrix[i][j].objectReference.GetComponent<Renderer>().material = _pixelBlack;
+            }
+        }
+        SetNewInitialConfiguration();
+    }
+
+    public void SetNewInitialConfiguration()
+    {
+        List<int> directionOffset = new List<int> { -maxColumns-1, -maxColumns, -maxColumns+1,
+                                                    -1, 0, 1,
+                                                    maxColumns-1, maxColumns, maxColumns+1};
+
         //int randomIndex = Random.Range(0, totalConfigurations + 1);
         int randomIndex = Random.Range(0, 500);
         List<List<int>> targetConfiguration = new List<List<int>>();
@@ -165,21 +175,24 @@ public class Game : MonoBehaviour
         }
 
         string finalstr = randomIndex + " : ";
+        int dirIndex = 0;
         for (int i = 0; i < 3; i++)
         {
             string rowstr = "";
             for (int j = 0; j < 3; j++)
             {
+                int targetPixelIndex = i * maxColumns + j;
+                int mid = midx * maxColumns + midy;
+
                 if (targetConfiguration[i][j] == 1)
                 {
-                    // paint box white;
-                    pixelMatrix[midx + 1 - i][midy + j - 1].objectReference.GetComponent<Renderer>().material = _pixelWhite;
+                    pixelMatrix[mid + directionOffset[dirIndex]].GetComponent<Renderer>().material = _pixelWhite;
                 }
                 else
                 {
-                    // paint box black;
-                    pixelMatrix[midx + 1 - i][midy + j - 1].objectReference.GetComponent<Renderer>().material = _pixelBlack;
+                    pixelMatrix[mid + directionOffset[dirIndex]].GetComponent<Renderer>().material = _pixelBlack;
                 }
+                dirIndex++;
                 rowstr += targetConfiguration[i][j] + " ";
             }
             finalstr += rowstr + "  ";
@@ -189,17 +202,7 @@ public class Game : MonoBehaviour
         //RunSimulation();
     }
 
-    public void ResetSimulation()
-    {
-        for (int i = 0; i < maxRows; i++)
-        {
-            for (int j = 0; j < maxColumns; j++)
-            {
-                pixelMatrix[i][j].objectReference.GetComponent<Renderer>().material = _pixelBlack;
-            }
-        }
-        SetNewConfiguration();
-    }
+
 
     //public void StartSimulation()
     //{
@@ -229,7 +232,7 @@ public class Game : MonoBehaviour
     //            {
     //                Debug.Log(i + ", " + j + " : " + liveNeighborCount);
     //            }
-                
+
     //        }
     //    }
     //}
@@ -237,6 +240,9 @@ public class Game : MonoBehaviour
     //public int CountLiveNeighbors(int x, int y)
     //{
     //    int count = 0;
+    //    Debug.Log(x + ", " + y);
+
+    //    //Debug.Log(pixelMatrix[x][y]);//.objectReference.GetComponent<Renderer>().material = _pixelWhite;
 
     //    // Array of relative positions of the 8 neighboring cells
     //    List<List<int>> directions = new List<List<int>>
@@ -246,25 +252,20 @@ public class Game : MonoBehaviour
     //        new List<int> { -1, -1 }, new List<int> { -1, 0 }, new List<int> { -1, 1 }
     //    };
 
-    //    string debugStr = "(" + x + ", " + y + ") ";
-
     //    for (int i = 0; i < 8; i++)
     //    {
     //        int newX = x + directions[i][0];
     //        int newY = y + directions[i][1];
 
-    //        debugStr = "(" + newX + ", " + newY + ") ";
+    //        Debug.Log(newX + ", " + newY);
 
     //        if (isWithinBounds(newX, newY))
     //        {
-    //            debugStr += " is within bounds. ";
     //            if (pixelMatrix[newX][newY].objectReference != null)
     //            {
-    //                debugStr += " Object ref is not null. ";
     //                Renderer renderer = pixelMatrix[newX][newY].objectReference.GetComponent<Renderer>();
     //                if (renderer.material == _pixelWhite)
     //                {
-    //                    debugStr += " material is white.";
     //                    count++;
     //                }
     //            }
